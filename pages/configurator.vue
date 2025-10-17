@@ -8,7 +8,7 @@
       </div>
       <div v-else-if="escStore.count === 0">
         <div class="text-xl p-6 text-center text-orange-500">
-          Please connect to a device and read settings.
+          Connect your device and read settings.
         </div>
       </div>
       <div v-else-if="serialStore.isFourWay || serialStore.isDirectConnect" class="pt-4 pb-12 h-full">
@@ -106,7 +106,7 @@
                       name: 'Stuck rotor protection'
                     }, {
                       field: 'STALL_PROTECTION',
-                      name: 'Stall protection'
+                      name: 'RPM Lock Antistall'
                     }, {
                       field: 'USE_HALL_SENSORS',
                       name: 'Use hall sensors'
@@ -119,7 +119,7 @@
                       maxFirmwareVersion: 'v2.17'
                     }, {
                       field: 'COMPLEMENTARY_PWM',
-                      name: 'Complementary PWM'
+                      name: 'On-Throttle Dragbrake aka Synchronous Rectification'
                     }, {
                       field: 'AUTO_ADVANCE',
                       name: 'Auto timing advance',
@@ -175,12 +175,12 @@
                     <SettingField
                       :esc-info="escStore.selectedEscInfo"
                       field="STARTUP_POWER"
-                      name="Startup power"
+                      name="Sine to Sensorless transition point"
                       type="number"
                       :min="50"
                       :max="150"
                       :step="1"
-                      unit="%"
+                      unit=" "
                       @change="onSettingsChange"
                     />
                     <SettingField
@@ -190,7 +190,7 @@
                       type="number"
                       :min="20"
                       :max="10220"
-                      :step="40"
+                      :step="50"
                       :display-factor="40"
                       :offset="20"
                       show-value
@@ -248,18 +248,18 @@
                       field="MAX_RAMP"
                       name="Ramp rate"
                       type="number"
-                      :min=".1"
-                      :max="20"
-                      :step=".1"
-                      unit="% duty cycle per ms"
-                      :display-factor=".1"
+                      :min="1"
+                      :max="99"
+                      :step="1"
+                      unit="units of acceleration damping"
+                      :display-factor="0.1"
                       show-value
                       @change="onSettingsChange"
                     />
                     <SettingField
                       :esc-info="escStore.selectedEscInfo"
                       field="MINIMUM_DUTY_CYCLE"
-                      name="Minimum duty cycle"
+                      name="Startup Duty"
                       type="number"
                       :min="0"
                       :max="25"
@@ -325,13 +325,13 @@
                       v-if="(escStore.firstValidEscData?.data.settings.LOW_VOLTAGE_CUTOFF as number) < 2"
                       :esc-info="escStore.selectedEscInfo"
                       field="LOW_VOLTAGE_THRESHOLD"
-                      name="Low voltage cut off threshold"
+                      name="Low voltage cut off Volts per Cell"
                       type="number"
                       :min="250"
                       :max="350"
-                      :step="1"
+                      :step="5"
                       :offset="250"
-                      :display-factor="1"
+                      :display-factor="0.01"
                       :disabled="(value: number) => escStore.firstValidEscData?.data.settings.LOW_VOLTAGE_CUTOFF === 0"
                       show-value
                       @change="onSettingsChange"
@@ -393,18 +393,18 @@
                     />
                   </SettingFieldGroup>
                   <SettingFieldGroup
-                    title="Sinusoidal Startup"
+                    title="Sine Startup"
                     :cols="2"
                     :switches="[{
                       field: 'SINUSOIDAL_STARTUP',
-                      name: 'Sinusoidal startup'
+                      name: 'Sine startup'
                     }]"
                     @change="onSettingsChange"
                   >
                     <SettingField
                       :esc-info="escStore.selectedEscInfo"
                       field="SINE_MODE_RANGE"
-                      name="Sine Mode Range"
+                      name="Sine Mode Throttle Range"
                       type="number"
                       :min="5"
                       :max="25"
@@ -415,7 +415,7 @@
                     <SettingField
                       :esc-info="escStore.selectedEscInfo"
                       field="SINE_MODE_POWER"
-                      name="Sine Mode Power"
+                      name="Sine Power"
                       type="number"
                       :min="1"
                       :max="10"
@@ -439,16 +439,17 @@
                     }]"
                     :radios="[{
                       field: 'BRAKE_ON_STOP',
-                      name: 'Brake on stop',
+                      name: 'Brake while stopped
+                        ',
                       minFirmwareVersion: 'v2.19',
                       values: [{
                         name: 'Off',
                         value: 0
                       }, {
-                        name: 'Brake on stop',
+                        name: 'Drag brake on stop',
                         value: 1
                       }, {
-                        name: 'Active brake',
+                        name: 'Active brake on stop',
                         value: 2
                       }]
                     }]"
@@ -456,7 +457,7 @@
                   >
                     <SettingField
                       :esc-info="escStore.selectedEscInfo"
-                      name="Brake strength"
+                      name="Drag Brake strength at stop"
                       type="number"
                       field="BRAKE_STRENGTH"
                       :min="1"
@@ -468,7 +469,7 @@
                     />
                     <SettingField
                       :esc-info="escStore.selectedEscInfo"
-                      name="Running brake level"
+                      name="Drag Brake strength when running"
                       type="number"
                       field="RUNNING_BRAKE_LEVEL"
                       :min="1"
@@ -481,7 +482,7 @@
                     <SettingField
                       :esc-info="escStore.selectedEscInfo"
                       field="ACTIVE_BRAKE_POWER"
-                      name="Active brake power"
+                      name="Active brake strength at stop"
                       type="number"
                       :min="0"
                       :max="6"
