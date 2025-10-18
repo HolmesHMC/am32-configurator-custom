@@ -439,8 +439,7 @@
                     }]"
                     :radios="[{
                       field: 'BRAKE_ON_STOP',
-                      name: 'Brake while stopped
-                        ',
+                      name: 'Brake while stopped',
                       minFirmwareVersion: 'v2.19',
                       values: [{
                         name: 'Off',
