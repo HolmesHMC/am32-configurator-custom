@@ -485,7 +485,7 @@
                       type="number"
                       :min="0"
                       :max="5"
-                      :step="0.1"
+                      :step="1"
                       unit="%"
                       :disabled="(value: number) => escStore.firstValidEscData?.data.settings.BRAKE_ON_STOP !== 2"
                       @change="onSettingsChange"
