@@ -251,7 +251,7 @@
                       :min=".1"
                       :max="20"
                       :step="0.1"
-                      unit="units of punch power"
+                      unit=" units of punch power"
                       :display-factor="10"
                       show-value
                       @change="onSettingsChange"
