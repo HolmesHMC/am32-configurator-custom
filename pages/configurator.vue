@@ -330,7 +330,7 @@
                       :max="350"
                       :step="5"
                       :offset="250"
-                      :display-factor="0.01"
+                      :display-factor="1"
                       :disabled="(value: number) => escStore.firstValidEscData?.data.settings.LOW_VOLTAGE_CUTOFF === 0"
                       show-value
                       @change="onSettingsChange"
