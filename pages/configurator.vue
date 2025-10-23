@@ -251,8 +251,7 @@
                       :min=".1"
                       :max="20"
                       :step="0.1"
-                      unit=" units of punch power"
-                      :display-factor="10"
+                      unit=" Higher value is faster acceleration"
                       show-value
                       @change="onSettingsChange"
                     />
