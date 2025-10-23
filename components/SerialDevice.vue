@@ -78,7 +78,7 @@
         <div class="w-full flex flex-col space-y-2">
           <UButton label="Flash firmware" size="2xs" icon="i-material-symbols-full-stacked-bar-chart" color="teal" @click="flashModalOpen = true" />
           <UButton
-            label="Send default config"
+            label="Send Crawler Defaults"
             size="2xs"
             icon="i-material-symbols-sim-card-outline"
             color="green"
