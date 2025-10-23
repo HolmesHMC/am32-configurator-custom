@@ -248,11 +248,11 @@
                       field="MAX_RAMP"
                       name="Ramp rate"
                       type="number"
-                      :min="1"
-                      :max="99"
-                      :step="1"
-                      unit="units of acceleration damping"
-                      :display-factor="0.1"
+                      :min=".1"
+                      :max="1"
+                      :step="0.1"
+                      unit="units of punch power"
+                      :display-factor="10"
                       show-value
                       @change="onSettingsChange"
                     />
