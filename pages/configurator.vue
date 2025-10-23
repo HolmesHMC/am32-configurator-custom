@@ -251,7 +251,8 @@
                       :min=".1"
                       :max="20"
                       :step="0.1"
-                      unit=" Higher value is faster acceleration"
+                      unit="--- Higher value is faster acceleration"
+                      :display-factor=".1"
                       show-value
                       @change="onSettingsChange"
                     />
