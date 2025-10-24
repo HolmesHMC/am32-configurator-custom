@@ -431,11 +431,11 @@
                     :firmware-version="`${escStore.firstValidEscData?.data.settings.MAIN_REVISION}.${escStore.firstValidEscData?.data.settings.SUB_REVISION}`"
                     :switches="[{
                       field: 'BRAKE_ON_STOP',
-                      name: 'Brake on stop',
+                      name: 'Instant Reverse',
                       maxFirmwareVersion: 'v2.18'
                     }, {
                       field: 'RC_CAR_REVERSING',
-                      name: 'Car type reverse breaking'
+                      name: 'Double Tap Reverse'
                     }]"
                     :radios="[{
                       field: 'BRAKE_ON_STOP',
@@ -456,7 +456,7 @@
                   >
                     <SettingField
                       :esc-info="escStore.selectedEscInfo"
-                      name="Drag Brake strength at stop"
+                      name="Drag Brake Strength while Stopped"
                       type="number"
                       field="BRAKE_STRENGTH"
                       :min="1"
@@ -468,7 +468,7 @@
                     />
                     <SettingField
                       :esc-info="escStore.selectedEscInfo"
-                      name="Drag Brake strength when running"
+                      name="On-Throttle Drag Brake Strength"
                       type="number"
                       field="RUNNING_BRAKE_LEVEL"
                       :min="1"
@@ -481,7 +481,7 @@
                     <SettingField
                       :esc-info="escStore.selectedEscInfo"
                       field="ACTIVE_BRAKE_POWER"
-                      name="Active brake strength at stop"
+                      name="Active brake strength while Stopped"
                       type="number"
                       :min="0"
                       :max="5"
