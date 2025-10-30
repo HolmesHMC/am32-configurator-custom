@@ -82,10 +82,10 @@
       <div v-else-if="mcu" class="">
         <div v-if="mcu?.settingsBuffer[0] === 0x01">
           <div>
-            <UCheckbox v-model="isReversed" label="Reversed" />
+            <UCheckbox v-model="isReversed" label="Reverse Rotation" />
           </div>
           <div>
-            <UCheckbox v-model="is3DMode" label="3D mode" />
+            <UCheckbox v-model="is3DMode" label="Forward & Reverse Mode" />
           </div>
         </div>
         <div v-if="mcu?.settingsBuffer[0] === 0x00" class="flex items-center justify-center gap-4">
