@@ -1048,23 +1048,21 @@ const startFlash = async (hexString: string) => {
 
 const applyDefaultConfig = async () => {
     let eepromVersion = escStore.firstValidEscData?.data.settings.LAYOUT_REVISION as number;
-    if (eepromVersion > 3) {
-        eepromVersion = 2;
+    if (eepromVersion < 3) {
+        eepromVersion = 3;
     }
-    const eepromUrl = await fetch(`/api/eeprom/${escStore.firstValidEscData?.data.meta.am32.fileName}?version=${eepromVersion}`)
-        .then((res) => {
-            if (res.status === 200) {
-                return res.text();
-            }
-            return fetch(`/api/eeprom/DEFAULT?version=${eepromVersion}`).then(res => res.text());
+
+    // Use local static defaults instead of Minio
+    const file = await fetch('/assets/eeprom_default.bin')
+        .then(res => {
+            if (!res.ok) throw new Error('Default config not found');
+            return res.arrayBuffer();
         })
         .catch(() => null);
 
-    if (!eepromUrl) {
+    if (!file) {
         throw new Error('Eeprom not found');
     }
-
-    const file = await fetch(eepromUrl).then(res => res.arrayBuffer());
 
     if (file) {
         const buffer = new Uint8Array(file);
