@@ -239,7 +239,15 @@
           </div>
           <template #footer>
             <div class="flex flex-col items-end gap-4">
-              <div v-if="escStore.activeTarget === -1" class="flex gap-4">
+              <div v-if="escStore.activeTarget === -1" class="flex gap-4 items-center">
+                <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer select-none">
+                  <input
+                    v-model="resetDefaultsAfterFlash"
+                    type="checkbox"
+                    class="rounded border-gray-500 bg-gray-800 text-green-500 focus:ring-green-500"
+                  />
+                  Reset to defaults after flash
+                </label>
                 <UButton
                   label="Start flash"
                   :disabled="
@@ -416,6 +424,7 @@ const saveConfigModalOpen = ref(false);
 const applyConfigModalOpen = ref(false);
 const fileInput = ref<File | null>(null);
 const currentTab = ref(0);
+const resetDefaultsAfterFlash = ref(true);
 const applyConfigFile = ref();
 
 const selectedRelease = ref('');
@@ -997,8 +1006,13 @@ const startFlash = async (hexString: string) => {
                     }
                 }
             }
-            escStore.step = 'Rewriting config';
-            await writeConfig();
+            if (resetDefaultsAfterFlash.value) {
+                escStore.step = 'Sending default config';
+                await applyDefaultConfig();
+            } else {
+                escStore.step = 'Rewriting config';
+                await writeConfig();
+            }
             escStore.step = 'Resetting';
             await Direct.getInstance().writeCommand(DIRECT_COMMANDS.cmd_Reset, 0);
             escStore.step = 'Read config';
@@ -1012,14 +1026,14 @@ const startFlash = async (hexString: string) => {
             escStore.activeTarget = i;
             await FourWay.getInstance().writeHex(i, hexString, 200);
             await delay(200);
-            if (currentTab.value === 2) {
+            if (resetDefaultsAfterFlash.value) {
                 escStore.step = 'Sending default config';
                 await applyDefaultConfig();
             }
             escStore.step = 'Resetting';
             await FourWay.getInstance().reset(i);
             await delay(5000);
-            if (currentTab.value === 2) {
+            if (resetDefaultsAfterFlash.value) {
                 escStore.step = 'Done';
             } else {
                 escStore.step = 'Read ESC';
