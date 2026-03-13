@@ -1015,6 +1015,7 @@ const startFlash = async (hexString: string) => {
             }
             escStore.step = 'Resetting';
             await Direct.getInstance().writeCommand(DIRECT_COMMANDS.cmd_Reset, 0);
+            await delay(3000);  // Wait for MCU to reboot (SystemInit + startup beeps)
             escStore.step = 'Read config';
             await Direct.getInstance().init();
 
