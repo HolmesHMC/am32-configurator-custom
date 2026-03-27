@@ -681,6 +681,23 @@ const connectToEsc = async () => {
 
         escData.value = [];
 
+        // Toggle DTR/RTS to force bootloader entry on boards with
+        // USB-serial DTR wired to reset/boot pin (common on 2-in-1 ESCs).
+        // Without this, some boards stay in firmware mode and ignore the
+        // bootloader handshake — only working after a desktop configurator
+        // has already toggled these signals.
+        try {
+            const port = serialStore.deviceHandles.port;
+            if (port) {
+                await port.setSignals({ dataTerminalReady: false, requestToSend: true });
+                await delay(100);
+                await port.setSignals({ dataTerminalReady: true, requestToSend: false });
+                await delay(200);
+            }
+        } catch (e) {
+            console.warn('DTR/RTS toggle failed (may not be supported):', e);
+        }
+
         await delay(200);
 
         const info = await Direct.getInstance().init();
