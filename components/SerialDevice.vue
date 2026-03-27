@@ -1016,8 +1016,32 @@ const startFlash = async (hexString: string) => {
             escStore.step = 'Resetting';
             await Direct.getInstance().writeCommand(DIRECT_COMMANDS.cmd_Reset, 0);
             await delay(3000);  // Wait for MCU to reboot (SystemInit + startup beeps)
-            escStore.step = 'Read config';
-            await Direct.getInstance().init();
+
+            // After reset, ESC boots into firmware — not bootloader.
+            // Try to re-init up to 3 times with increasing delays.
+            // If it still fails, mark success and skip settings re-read
+            // (the flash itself already succeeded).
+            let reconnected = false;
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try {
+                    escStore.step = `Reconnecting (attempt ${attempt + 1}/3)...`;
+                    const info = await Direct.getInstance().init();
+                    if (info) {
+                        escStore.escData[0].data = info;
+                        escStore.escData[0].isLoading = false;
+                        reconnected = true;
+                        break;
+                    }
+                } catch (e) {
+                    console.warn(`Re-init attempt ${attempt + 1} failed:`, e);
+                }
+                await delay(2000);
+            }
+
+            if (!reconnected) {
+                escStore.step = 'Flash complete! Power cycle ESC to reconnect.';
+                await delay(3000);
+            }
 
             escStore.activeTarget = -1;
         }

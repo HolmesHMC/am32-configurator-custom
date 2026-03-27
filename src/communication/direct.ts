@@ -95,7 +95,7 @@ export class Direct {
             0x0D, 'B'.charCodeAt(0), 'L'.charCodeAt(0), 'H'.charCodeAt(0), 'e'.charCodeAt(0), 'l'.charCodeAt(0), 'i'.charCodeAt(0), 0xF4, 0x7D
         ]);
         const result = await serial.write(init.buffer, 2000);
-        if (result) {
+        if (result && result.length > init.length) {
             const infoBuffer = result.subarray(init.length);
             const message: FourWayResponse = {
                 command: 0x0,
