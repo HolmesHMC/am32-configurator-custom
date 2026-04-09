@@ -1107,6 +1107,16 @@ const applyDefaultConfig = async () => {
         const buffer = new Uint8Array(file);
         const settings = bufferToSettings(buffer, eepromVersion);
 
+        // Don't overwrite firmware version/identity fields from defaults —
+        // these belong to the flashed firmware, not the settings.
+        // Bug: applying defaults was changing reported version (e.g. 2.19 → 2.20)
+        delete settings.BOOT_BYTE;
+        delete settings.LAYOUT_REVISION;
+        delete settings.BOOT_LOADER_REVISION;
+        delete settings.MAIN_REVISION;
+        delete settings.SUB_REVISION;
+        delete settings.DEVICE_NAME;
+
         settings.STARTUP_MELODY = (new Array(128)).fill(0xFF);
 
         for (const n of savingOrApplyingSelectedEscs.value) {
