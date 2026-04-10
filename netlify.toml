@@ -6,6 +6,12 @@
 
   ## Uncomment to use this redirect for Single Page Applications like create-react-app.
   ## Not needed for static site generators.
+  # Serve static downloads directly (bypass SPA redirect)
+  [[redirects]]
+    from = "/downloads/*"
+    to = "/downloads/:splat"
+    status = 200
+
   [[redirects]]
     from = "/*"
     to = "/index.html"
