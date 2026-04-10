@@ -1085,42 +1085,71 @@ const startFlash = async (hexString: string) => {
     }
 };
 
+/**
+ * Holmes Hobbies crawler defaults — raw EEPROM byte values.
+ * Only tunable settings — no structural/version fields (BOOT_BYTE,
+ * LAYOUT_REVISION, BOOT_LOADER_REVISION, MAIN_REVISION, SUB_REVISION).
+ * Mirrors the pattern used in the TrailLink phone app.
+ * Values match eeprom_default.bin as of 2026-04-09.
+ */
+const CRAWLER_DEFAULTS: Record<string, number | number[]> = {
+    MAX_RAMP: 14,                    // 0x05
+    MINIMUM_DUTY_CYCLE: 1,           // 0x06
+    DISABLE_STICK_CALIBRATION: 0,    // 0x07
+    ABSOLUTE_VOLTAGE_CUTOFF: 10,     // 0x08
+    CURRENT_P: 100,                  // 0x09
+    CURRENT_I: 0,                    // 0x0A
+    CURRENT_D: 100,                  // 0x0B
+    ACTIVE_BRAKE_POWER: 0,           // 0x0C
+    MOTOR_DIRECTION: 0,              // 0x11
+    BIDIRECTIONAL_MODE: 1,           // 0x12
+    SINUSOIDAL_STARTUP: 1,           // 0x13
+    COMPLEMENTARY_PWM: 1,            // 0x14
+    VARIABLE_PWM_FREQUENCY: 1,       // 0x15
+    STUCK_ROTOR_PROTECTION: 0,       // 0x16
+    TIMING_ADVANCE: 26,              // 0x17
+    PWM_FREQUENCY: 24,               // 0x18
+    STARTUP_POWER: 80,               // 0x19
+    MOTOR_KV: 55,                    // 0x1A
+    MOTOR_POLES: 14,                 // 0x1B
+    BRAKE_ON_STOP: 1,                // 0x1C
+    STALL_PROTECTION: 1,             // 0x1D
+    BEEP_VOLUME: 5,                  // 0x1E
+    INTERVAL_TELEMETRY: 0,           // 0x1F
+    SERVO_LOW_THRESHOLD: 128,        // 0x20
+    SERVO_HIGH_THRESHOLD: 128,       // 0x21
+    SERVO_NEUTRAL: 128,              // 0x22
+    SERVO_DEAD_BAND: 50,             // 0x23
+    LOW_VOLTAGE_CUTOFF: 1,           // 0x24
+    LOW_VOLTAGE_THRESHOLD: 80,       // 0x25
+    RC_CAR_REVERSING: 0,             // 0x26
+    USE_HALL_SENSORS: 0,             // 0x27
+    SINE_MODE_RANGE: 15,             // 0x28
+    BRAKE_STRENGTH: 10,              // 0x29
+    RUNNING_BRAKE_LEVEL: 10,         // 0x2A
+    TEMPERATURE_LIMIT: 143,          // 0x2B
+    CURRENT_LIMIT: 102,              // 0x2C
+    SINE_MODE_POWER: 5,              // 0x2D
+    ESC_PROTOCOL: 0,                 // 0x2E
+    AUTO_ADVANCE: 0,                 // 0x2F
+    STARTUP_MELODY: (new Array(128)).fill(0xFF),
+};
+
 const applyDefaultConfig = async () => {
-    let eepromVersion = escStore.firstValidEscData?.data.settings.LAYOUT_REVISION as number;
-    if (eepromVersion < 3) {
-        eepromVersion = 3;
+    for (const n of savingOrApplyingSelectedEscs.value) {
+        // Merge crawler defaults onto the ESC's current settings.
+        // Structural/version fields are untouched — only tuning values change.
+        const currentSettings = escStore.escData[n - 1].data.settings;
+        escStore.escData[n - 1].data.settings = { ...currentSettings, ...CRAWLER_DEFAULTS };
+        escStore.escData[n - 1].data.settingsDirty = true;
     }
 
-    // Use local static defaults instead of Minio
-    const file = await fetch('/assets/eeprom_default.bin')
-        .then(res => {
-            if (!res.ok) throw new Error('Default config not found');
-            return res.arrayBuffer();
-        })
-        .catch(() => null);
+    await writeConfig().catch((err) => {
+        logError(err.message);
+    });
 
-    if (!file) {
-        throw new Error('Eeprom not found');
-    }
-
-    if (file) {
-        const buffer = new Uint8Array(file);
-        const settings = bufferToSettings(buffer, eepromVersion);
-
-        settings.STARTUP_MELODY = (new Array(128)).fill(0xFF);
-
-        for (const n of savingOrApplyingSelectedEscs.value) {
-            escStore.escData[n - 1].data.settings = settings;
-            escStore.escData[n - 1].data.settingsDirty = true;
-        }
-
-        await writeConfig().catch((err) => {
-            logError(err.message);
-        });
-
-        if (applyDefaultConfigModalOpen.value) {
-            applyDefaultConfigModalOpen.value = false;
-        }
+    if (applyDefaultConfigModalOpen.value) {
+        applyDefaultConfigModalOpen.value = false;
     }
 
     if (applyConfigFile.value) {
