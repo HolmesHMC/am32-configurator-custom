@@ -16,6 +16,19 @@
   to = "/firmware/:splat"
   status = 200
 
+# Force APK as download (phones try to render it as a page otherwise)
+[[headers]]
+  for = "/downloads/*.apk"
+  [headers.values]
+    Content-Type = "application/vnd.android.package-archive"
+    Content-Disposition = "attachment"
+
+# Force firmware bin downloads
+[[headers]]
+  for = "/firmware/*.bin"
+  [headers.values]
+    Content-Disposition = "attachment"
+
 # SPA fallback — must be LAST
 [[redirects]]
   from = "/*"
