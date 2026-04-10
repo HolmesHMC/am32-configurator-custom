@@ -4,7 +4,12 @@
   functions = "netlify/functions"
   publish = "dist"
 
-# Serve static downloads directly (bypass SPA redirect)
+# Download page and static files (bypass SPA redirect)
+[[redirects]]
+  from = "/download"
+  to = "/download.html"
+  status = 200
+
 [[redirects]]
   from = "/downloads/*"
   to = "/downloads/:splat"
