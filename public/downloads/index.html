@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrailLink App Download</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f1115;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card {
+      background: #1a1d24;
+      border-radius: 16px;
+      padding: 40px 32px;
+      max-width: 380px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .logo {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 32px;
+    }
+    .download-btn {
+      display: inline-block;
+      background: #2563eb;
+      color: #fff;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: 600;
+      padding: 16px 40px;
+      border-radius: 12px;
+      transition: background 0.2s;
+      width: 100%;
+    }
+    .download-btn:hover { background: #1d4ed8; }
+    .download-btn:active { background: #1e40af; }
+    .note {
+      margin-top: 24px;
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+    }
+    .version {
+      display: inline-block;
+      background: #2563eb22;
+      color: #60a5fa;
+      font-size: 12px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">⚡</div>
+    <h1>TrailLink</h1>
+    <p class="subtitle">by Holmes Hobbies</p>
+    <span class="version">Android</span>
+    <br><br>
+    <a class="download-btn" href="/downloads/TrailLink.apk" download="TrailLink.apk">
+      ⬇ Download APK
+    </a>
+    <p class="note">
+      Tap the button to download the APK.<br>
+      You may need to allow installs from unknown sources in your Android settings.
+    </p>
+  </div>
+</body>
+</html>
