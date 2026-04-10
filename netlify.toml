@@ -4,18 +4,23 @@
   functions = "netlify/functions"
   publish = "dist"
 
-  ## Uncomment to use this redirect for Single Page Applications like create-react-app.
-  ## Not needed for static site generators.
-  # Serve static downloads directly (bypass SPA redirect)
-  [[redirects]]
-    from = "/downloads/*"
-    to = "/downloads/:splat"
-    status = 200
+# Serve static downloads directly (bypass SPA redirect)
+[[redirects]]
+  from = "/downloads/*"
+  to = "/downloads/:splat"
+  status = 200
 
-  [[redirects]]
-    from = "/*"
-    to = "/index.html"
-    status = 200
+# Also serve firmware binaries directly
+[[redirects]]
+  from = "/firmware/*"
+  to = "/firmware/:splat"
+  status = 200
+
+# SPA fallback — must be LAST
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
   ## (optional) Settings for Netlify Dev
   ## https://github.com/netlify/cli/blob/main/docs/netlify-dev.md#project-detection
