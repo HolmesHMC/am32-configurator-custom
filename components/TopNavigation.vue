@@ -43,9 +43,10 @@ const links = computed(() => [{
     label: 'Downloads',
     icon: 'i-material-symbols-download-rounded',
     to: '/downloads'
-}, {
-    label: 'TrailLink',
-    icon: 'i-heroicons-bolt',
-    to: '/traillink'
+// TrailLink tab hidden for now — page still accessible at /traillink
+// }, {
+//     label: 'TrailLink',
+//     icon: 'i-heroicons-bolt',
+//     to: '/traillink'
 }]);
 </script>
