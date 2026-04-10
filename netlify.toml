@@ -4,22 +4,24 @@
   functions = "netlify/functions"
   publish = "dist"
 
-# Download page and static files (bypass SPA redirect)
+# Static files — force=true overrides SPA fallback
 [[redirects]]
   from = "/download"
   to = "/download.html"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/downloads/*"
   to = "/downloads/:splat"
   status = 200
+  force = true
 
-# Also serve firmware binaries directly
 [[redirects]]
   from = "/firmware/*"
   to = "/firmware/:splat"
   status = 200
+  force = true
 
 # Force APK as download (phones try to render it as a page otherwise)
 [[headers]]
