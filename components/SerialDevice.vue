@@ -78,7 +78,7 @@
         <div class="w-full flex flex-col space-y-2">
           <UButton label="Flash firmware" size="2xs" icon="i-material-symbols-full-stacked-bar-chart" color="teal" @click="flashModalOpen = true" />
           <UButton
-            label="Send Crawler Defaults"
+            label="Send Premade Flash"
             size="2xs"
             icon="i-material-symbols-sim-card-outline"
             color="green"
@@ -245,7 +245,7 @@
                     v-model="resetDefaultsAfterFlash"
                     type="checkbox"
                     class="rounded border-gray-500 bg-gray-800 text-green-500 focus:ring-green-500"
-                  />
+                  >
                   Reset to defaults after flash
                 </label>
                 <UButton
@@ -280,16 +280,36 @@
               <div class="flex items-center justify-center gap-2 text-xl">
                 <UIcon name="i-material-symbols-sim-card-outline" class="h-8 w-8" />
                 <div class="text-2xl">
-                  Apply default config
+                  Send premade flash
                 </div>
               </div>
             </div>
           </template>
-          <div>
-            <div v-if="serialStore.isDirectConnect" class="text-center">
-              Do you want to overwrite the current config with default settings?
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-2">
+              <div class="text-center">
+                Choose a premade flash:
+              </div>
+              <div class="flex flex-col gap-2">
+                <div
+                  v-for="preset of ESC_PRESETS"
+                  :key="preset.id"
+                  class="transition-all w-full rounded-lg border border-gray-500 bg-gray-800 p-3 cursor-pointer"
+                  :class="{
+                    'ring-2 ring-green-500 bg-green-300/20': selectedPresetId === preset.id
+                  }"
+                  @click="selectedPresetId = preset.id"
+                >
+                  <div class="font-semibold">
+                    {{ preset.name }}
+                  </div>
+                  <div class="text-sm text-gray-400">
+                    {{ preset.description }}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div v-else class="flex flex-col gap-2">
+            <div v-if="!serialStore.isDirectConnect" class="flex flex-col gap-2">
               <div class="text-center">
                 Select ESC(s) to apply:
               </div>
@@ -310,7 +330,7 @@
           </div>
           <template #footer>
             <div class="text-right">
-              <UButton color="green" :label="serialStore.isDirectConnect ? 'Yes' : 'Apply'" :disabled="savingOrApplyingSelectedEscs.length === 0" @click="applyDefaultConfig" />
+              <UButton color="green" label="Apply" :disabled="!selectedPresetId || savingOrApplyingSelectedEscs.length === 0" @click="applyDefaultConfig()" />
             </div>
           </template>
         </UCard>
@@ -409,6 +429,7 @@ import Serial from '~/src/communication/serial';
 import db from '~/src/db';
 import Flash from '~/src/flash';
 import Mcu, { type EscData } from '~/src/mcu';
+import { CRAWLER_DEFAULTS, ESC_PRESETS, type EscSettingsMap } from '~/utils/esc-presets';
 
 const toast = useToast();
 const serialStore = useSerialStore();
@@ -420,6 +441,7 @@ const usbDirectVendorIds = [0x1A86, 0x0403, 0x4348, 0x26BA, 0x10C4];
 const usbDirectDeviceIdExceptions = [0xE204];
 const flashModalOpen = ref(false);
 const applyDefaultConfigModalOpen = ref(false);
+const selectedPresetId = ref<string | null>(ESC_PRESETS[0]?.id ?? null);
 const saveConfigModalOpen = ref(false);
 const applyConfigModalOpen = ref(false);
 const fileInput = ref<File | null>(null);
@@ -744,7 +766,7 @@ const connectToEsc = async () => {
 
         savingOrApplyingSelectedEscs.value = escStore.escData.map((_, i) => i + 1);
 
-        applyDefaultConfig();
+        applyDefaultConfig(CRAWLER_DEFAULTS);
     }
 
     let needToSave = false;
@@ -1008,14 +1030,14 @@ const startFlash = async (hexString: string) => {
             }
             if (resetDefaultsAfterFlash.value) {
                 escStore.step = 'Sending default config';
-                await applyDefaultConfig();
+                await applyDefaultConfig(CRAWLER_DEFAULTS);
             } else {
                 escStore.step = 'Rewriting config';
                 await writeConfig();
             }
             escStore.step = 'Resetting';
             await Direct.getInstance().writeCommand(DIRECT_COMMANDS.cmd_Reset, 0);
-            await delay(3000);  // Wait for MCU to reboot (SystemInit + startup beeps)
+            await delay(3000); // Wait for MCU to reboot (SystemInit + startup beeps)
 
             // After reset, ESC boots into firmware — not bootloader.
             // Try to re-init up to 3 times with increasing delays.
@@ -1053,7 +1075,7 @@ const startFlash = async (hexString: string) => {
             await delay(200);
             if (resetDefaultsAfterFlash.value) {
                 escStore.step = 'Sending default config';
-                await applyDefaultConfig();
+                await applyDefaultConfig(CRAWLER_DEFAULTS);
             }
             escStore.step = 'Resetting';
             await FourWay.getInstance().reset(i);
@@ -1086,61 +1108,27 @@ const startFlash = async (hexString: string) => {
 };
 
 /**
- * Holmes Hobbies crawler defaults — raw EEPROM byte values.
- * Only tunable settings — no structural/version fields (BOOT_BYTE,
- * LAYOUT_REVISION, BOOT_LOADER_REVISION, MAIN_REVISION, SUB_REVISION).
- * Mirrors the pattern used in the TrailLink phone app.
- * Values match eeprom_default.bin as of 2026-04-09.
+ * Apply a premade flash preset (or the crawler base) onto the selected
+ * ESC(s) and write it.
+ *
+ * CRAWLER_DEFAULTS + ESC_PRESETS live in utils/esc-presets.ts (Nuxt
+ * auto-import).  When called from the modal, the user-selected preset
+ * is used.  Automatic call sites (empty-settings auto-flash,
+ * reset-after-flash) pass no preset and fall back to the crawler base
+ * so existing behaviour is preserved.
  */
-const CRAWLER_DEFAULTS: Record<string, number | number[]> = {
-    MAX_RAMP: 14,                    // 0x05
-    MINIMUM_DUTY_CYCLE: 1,           // 0x06
-    DISABLE_STICK_CALIBRATION: 0,    // 0x07
-    ABSOLUTE_VOLTAGE_CUTOFF: 10,     // 0x08
-    CURRENT_P: 100,                  // 0x09
-    CURRENT_I: 0,                    // 0x0A
-    CURRENT_D: 100,                  // 0x0B
-    ACTIVE_BRAKE_POWER: 0,           // 0x0C
-    MOTOR_DIRECTION: 0,              // 0x11
-    BIDIRECTIONAL_MODE: 1,           // 0x12
-    SINUSOIDAL_STARTUP: 1,           // 0x13
-    COMPLEMENTARY_PWM: 1,            // 0x14
-    VARIABLE_PWM_FREQUENCY: 1,       // 0x15
-    STUCK_ROTOR_PROTECTION: 0,       // 0x16
-    TIMING_ADVANCE: 26,              // 0x17
-    PWM_FREQUENCY: 24,               // 0x18
-    STARTUP_POWER: 80,               // 0x19
-    MOTOR_KV: 55,                    // 0x1A
-    MOTOR_POLES: 14,                 // 0x1B
-    BRAKE_ON_STOP: 1,                // 0x1C
-    STALL_PROTECTION: 1,             // 0x1D
-    BEEP_VOLUME: 5,                  // 0x1E
-    INTERVAL_TELEMETRY: 0,           // 0x1F
-    SERVO_LOW_THRESHOLD: 128,        // 0x20
-    SERVO_HIGH_THRESHOLD: 128,       // 0x21
-    SERVO_NEUTRAL: 128,              // 0x22
-    SERVO_DEAD_BAND: 50,             // 0x23
-    LOW_VOLTAGE_CUTOFF: 1,           // 0x24
-    LOW_VOLTAGE_THRESHOLD: 80,       // 0x25
-    RC_CAR_REVERSING: 0,             // 0x26
-    USE_HALL_SENSORS: 0,             // 0x27
-    SINE_MODE_RANGE: 15,             // 0x28
-    BRAKE_STRENGTH: 10,              // 0x29
-    RUNNING_BRAKE_LEVEL: 10,         // 0x2A
-    TEMPERATURE_LIMIT: 143,          // 0x2B
-    CURRENT_LIMIT: 102,              // 0x2C
-    SINE_MODE_POWER: 5,              // 0x2D
-    ESC_PROTOCOL: 0,                 // 0x2E
-    AUTO_ADVANCE: 0,                 // 0x2F
-    STARTUP_MELODY: (new Array(128)).fill(0xFF),
-};
+const applyDefaultConfig = async (settingsOverride?: EscSettingsMap) => {
+    let settings: EscSettingsMap | undefined = settingsOverride;
+    if (!settings) {
+        const preset = ESC_PRESETS.find(p => p.id === selectedPresetId.value);
+        settings = preset ? preset.settings : CRAWLER_DEFAULTS;
+    }
 
-const applyDefaultConfig = async () => {
     for (const n of savingOrApplyingSelectedEscs.value) {
-        // Merge crawler defaults onto the ESC's current settings.
+        // Merge the chosen preset onto the ESC's current settings.
         // Structural/version fields are untouched — only tuning values change.
         const currentSettings = escStore.escData[n - 1].data.settings;
-        escStore.escData[n - 1].data.settings = { ...currentSettings, ...CRAWLER_DEFAULTS };
+        escStore.escData[n - 1].data.settings = { ...currentSettings, ...settings };
         escStore.escData[n - 1].data.settingsDirty = true;
     }
 
