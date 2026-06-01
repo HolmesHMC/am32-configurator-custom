@@ -31,22 +31,25 @@
 </template>
 <script setup lang="ts">
 // const route = useRoute();
-const links = computed(() => [{
-    label: 'AM32',
-    icon: 'i-heroicons-home',
-    to: '/'
-}, {
-    label: 'Configurator',
-    icon: 'i-heroicons-cpu-chip-16-solid',
-    to: '/configurator'
-}, {
-    label: 'Downloads',
-    icon: 'i-material-symbols-download-rounded',
-    to: '/downloads'
-// TrailLink tab hidden for now — page still accessible at /traillink
-// }, {
-//     label: 'TrailLink',
-//     icon: 'i-heroicons-bolt',
-//     to: '/traillink'
-}]);
+const links = computed(() => [
+// AM32 landing tab hidden for now — page still accessible at /
+// {
+//     label: 'AM32',
+//     icon: 'i-heroicons-home',
+//     to: '/'
+// },
+    {
+        label: 'Configurator',
+        icon: 'i-heroicons-cpu-chip-16-solid',
+        to: '/configurator'
+    }, {
+        label: 'Downloads',
+        icon: 'i-material-symbols-download-rounded',
+        to: '/downloads'
+        // TrailLink tab hidden for now — page still accessible at /traillink
+        // }, {
+        //     label: 'TrailLink',
+        //     icon: 'i-heroicons-bolt',
+        //     to: '/traillink'
+    }]);
 </script>
