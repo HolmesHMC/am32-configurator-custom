@@ -15,6 +15,11 @@ export default defineNuxtConfig({
 
     ssr: false,
 
+    routeRules: {
+        // AM32 landing page hidden for now — Nitro redirects home to the configurator.
+        '/': { redirect: { to: '/configurator', statusCode: 302 } }
+    },
+
     runtimeConfig: {
         redis: { // Default values
             host: process.env.REDIS_HOST,
