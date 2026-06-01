@@ -36,6 +36,13 @@
   [headers.values]
     Content-Disposition = "attachment"
 
+# Home hidden for now — send / to the configurator (force overrides SPA fallback)
+[[redirects]]
+  from = "/"
+  to = "/configurator"
+  status = 302
+  force = true
+
 # SPA fallback — must be LAST
 [[redirects]]
   from = "/*"
