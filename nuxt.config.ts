@@ -21,11 +21,10 @@ export default defineNuxtConfig({
     },
 
     runtimeConfig: {
-        redis: { // Default values
-            host: process.env.REDIS_HOST,
-            port: 6379
-            /* other redis connector options */
-        }
+        // Origin serving the firmware / bootloader / tool index and the eeprom
+        // schema. am32.ca retired its S3 gateway upstream (ffdb40e), so these
+        // are read from its public HTTP API instead of an object store.
+        filesOrigin: process.env.FILES_ORIGIN ?? 'https://am32.ca'
     },
 
     modules: [
