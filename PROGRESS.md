@@ -80,3 +80,34 @@ vars, volumes or secrets required.
 - Verified `origin/master` matches local HEAD `e0864c0`; remote URL remained clean.
 - Site still requires the AM32 host maintainer to run
   `git pull && docker compose up -d --build`; pushing alone does not deploy.
+
+## 2026-09-01 15:32Z — site recovered, no maintainer needed
+
+Pushed `9e70366`..`e0864c0` at 15:05Z. By 15:32Z `holmes.am32.ca` was serving
+again. Nobody touched the host.
+
+**This corrects a wrong conclusion from the triage above.** I checked both repos
+for CI, found only a protocol test matrix upstream and no `.github` at all in
+this fork, and concluded there was no automation and that every deploy needed a
+human on the AM32 box. Wrong: the automation lives *on their host*, where it is
+invisible from the repos. Holmes knew it rebuilt about once a minute. Looking
+for CI in the repo is not the same as looking for deployment automation.
+
+What the recovery does confirm:
+- The new Dockerfile builds on the host — `node:24-bookworm`, `corepack` without
+  `yarn set version berry`, `yarn install --immutable` against the regenerated
+  Yarn 4 lockfile. Previously only verified natively on macOS arm64.
+- The S3 replacement works in production: `/api/files?prereleases` returns all
+  five sections with absolute am32.ca URLs, `/eeprom` returns the schema.
+- Our customizations survive: `/` redirects to `/configurator`, the TrailLink
+  APK serves at 26,329,728 bytes, firmware bins serve.
+
+It also sharpens the root cause. The poller must be gated on new commits — an
+unconditional `docker compose up -d --build` would have restarted the stopped
+container weeks ago. So the container stopped for some reason we still cannot
+see, and then stayed stopped because no commit ever landed to trigger a
+rebuild. `restart: unless-stopped` now covers reboots; a crash with no pending
+commits could still strand it silently.
+
+The drafted ask to the maintainer (`workspace/am32-maintainer-ask.md`) was not
+sent and is not needed.

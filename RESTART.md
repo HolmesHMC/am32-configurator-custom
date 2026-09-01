@@ -1,41 +1,48 @@
 # RESTART — AM32 Configurator (holmes.am32.ca)
 
 ## TL;DR
-Site is **DOWN**: Traefik on the AM32 host has no router for `holmes.am32.ca`,
-so every request returns a plain-text `404 page not found` at the proxy. Our
-container is not running. `am32.ca` itself (same IP, 138.199.169.142) is fine.
+Site is **UP** again as of 2026-09-01 15:32Z. It had been dead for weeks:
+Traefik had no router for the host, so everything 404'd at the proxy while
+`am32.ca` on the same IP (138.199.169.142) stayed fine.
 
-Nothing on our side changed since 2026-06-01. The host changed underneath us.
+Fix is live on `origin/master` — `3b6ba1f` (retired am32.ca S3 backend replaced
+with its public HTTP API) and `e207d1d` (build pinned, `restart: unless-stopped`
+added). The AM32 host rebuilt on its own within ~25 min of the push. No
+maintainer was involved, and none is needed.
 
-Fix is **pushed to `origin/master` at `e0864c0`**. The two fix commits are
-`3b6ba1f` (S3 backend replaced with am32.ca's public HTTP API) and `e207d1d`
-(build pinned, restart policy added), plus docs commit `e0864c0` on top. Verified
-locally — `yarn install --immutable` + `yarn build` green on Node 20.20.2 and
-24.20.0, server boots, all routes serve. The site remains down until the AM32
-host maintainer rebuilds the Docker stack.
+## How this deploys — read before pushing
+The AM32 host polls this repo and rebuilds roughly **once a minute**, so
+**pushing to `master` is deploying to production.** Do not push half-finished
+work to `master`.
 
-## What is NOT proven
-The container being stopped is confirmed; **why** is not. The build itself is
-fine (verified), so the leading explanation is operational — our compose had no
-`restart:` policy, so a host reboot or docker restart would strand it. Reading
-the host's `docker compose ps` would settle it; we have no host access.
+The poller is gated on *new commits*, not an unconditional `up -d --build` —
+an unconditional one would have restarted the stopped container by itself and
+it never did. That is why the site sat dead from late August: nothing was
+pushed, so nothing rebuilt. `restart: unless-stopped` now covers the reboot
+case, but a crash with no commits pending can still strand it silently.
+
+A failed build on the host is invisible to us. Always verify locally first:
+`corepack yarn install --immutable && corepack yarn build`.
+
+## Verified live after recovery
+`/` 302 → `/configurator` · `/configurator`, `/downloads`, `/traillink`,
+`/download` all 200 · `/api/files?prereleases` returns 5 sections with absolute
+am32.ca URLs · `/eeprom` 200 (15,847 bytes) · TrailLink APK 26,329,728 bytes
+with the correct APK content-type · traillink firmware bins served.
 
 ## Next step
-1. Ask the AM32 host maintainer (tridge / alka) to run, in our stack directory:
-   `git pull && docker compose up -d --build`
-   No new env vars, no volumes, no secrets are needed any more.
-2. Confirm `https://holmes.am32.ca/` → 302 → `/configurator`, and that the
-   Downloads tab lists firmware.
+Nothing urgent — the site is healthy. Open items are in PROJECT.md; the next
+real piece of work is porting the Inrunner/Outrunner/Micro presets to the
+TrailLink phone app.
 
-## Notes for whoever runs the rebuild
-- `docker-compose.yml` no longer references `stack.env`, redis, or minio.
-- Defaults are now `PREFIX=holmes-` / `DOMAIN=holmes.am32.ca`. Upstream's
-  defaults (`""` / `am32.ca`) would have collided with the main site.
-- If a host-side `.env` already sets PREFIX/DOMAIN, it still wins.
+## Notes on the deployment
+`docker-compose.yml` no longer references `stack.env`, redis or minio. Defaults
+are `PREFIX=holmes-` / `DOMAIN=holmes.am32.ca` (upstream's `""` / `am32.ca`
+would collide with the main site); a host-side `.env` still overrides both.
 
 ## Follow-ups (not blocking)
 - `package-lock.json` (npm) is still committed alongside `yarn.lock`. Inert for
-  the Docker build, but it is a third lockfile in a repo that already had two
+  the Docker build, but a third lockfile in a repo that already had two
   disagreeing ones. Recommend deleting.
 - `netlify.toml` is dead — the host runs the Nuxt server, not Netlify.
 - Fork is ~6 months behind `am32-firmware/am32-configurator`. Do not blind-merge:

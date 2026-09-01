@@ -9,6 +9,12 @@ deployed as a Docker container on the AM32 host behind Traefik, served at
 - **Runtime**: single container. `docker/Dockerfile` builds with yarn, the
   release stage runs `node server/index.mjs` on port 3000. Traefik routes
   `Host(holmes.am32.ca)` to it via the external `proxy` network.
+- **Deployment**: the AM32 host polls this repo and rebuilds roughly once a
+  minute, so **pushing to `master` deploys to production**. There is no CI in
+  the repo — the automation lives on their host and is invisible from here.
+  It is gated on *new commits*: an unconditional `up -d --build` would restart
+  a stopped container, and it does not. Confirmed 2026-09-01, when a push
+  brought the site back within ~25 minutes with nobody touching the host.
 - **No datastore.** Redis and the Minio/S3 client were removed 2026-09-01;
   both existed only to hold and cache presigned object-store URLs.
 - **File distribution**: `server/api/files.ts` proxies `https://am32.ca/api/files`
@@ -57,6 +63,9 @@ deployed as a Docker container on the AM32 host behind Traefik, served at
    files. Port individual files.
 6. **We do not host firmware.** The release-sync uploader (`run.ts`,
    `src/fetch-and-upload-releases.ts`) was deleted; am32.ca owns the files.
+7. **`master` is production.** Never push unfinished work to it. Always run
+   `corepack yarn install --immutable && corepack yarn build` first — a build
+   that fails on the host is invisible to us and leaves the site down.
 
 ## Next Steps
 
