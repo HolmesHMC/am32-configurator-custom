@@ -1,39 +1,25 @@
+# This is the Holmes Hobbies fork. The defaults below are ours on purpose:
+# upstream ships PREFIX="" / DOMAIN=am32.ca, which on a shared host would make
+# this stack claim the container name and the Traefik host rule of the main
+# am32.ca site. A host-side .env may still override both.
 services:
   configurator:
-    container_name: ${PREFIX:-}configurator
+    container_name: ${PREFIX:-holmes-}configurator
     build:
       context: ./
       dockerfile: docker/Dockerfile
+    # Without a restart policy the container does not come back after a host
+    # reboot or a docker daemon restart; Traefik then has no router for the
+    # domain and every request 404s at the proxy.
+    restart: unless-stopped
     labels:
       - traefik.enable=true
-      - traefik.http.routers.${PREFIX:-}configurator.rule=Host(`${DOMAIN:-am32.ca}`)
-      - traefik.http.routers.${PREFIX:-}configurator.service=${PREFIX:-}configurator
-      - traefik.http.services.${PREFIX:-}configurator.loadbalancer.server.port=3000
+      - traefik.http.routers.${PREFIX:-holmes-}configurator.rule=Host(`${DOMAIN:-holmes.am32.ca}`)
+      - traefik.http.routers.${PREFIX:-holmes-}configurator.service=${PREFIX:-holmes-}configurator
+      - traefik.http.services.${PREFIX:-holmes-}configurator.loadbalancer.server.port=3000
     pull_policy: build
-    env_file: stack.env
     networks:
       - proxy
-      - redis-net
-  redisinsight:
-    image: redis/redisinsight:latest
-    volumes:
-      - redisinsight:/data
-    networks:
-      - redis-net
-  cache:
-    image: redis:7
-    networks:
-      - redis-net
-    volumes:
-      - cache:/data
-    ports:
-      - 6379:6379
 networks:
-  conf:
-  redis-net:
-    external: true
   proxy:
     external: true
-volumes:
-  cache:
-  redisinsight:

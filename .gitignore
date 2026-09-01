@@ -26,3 +26,6 @@ logs
 # Local Netlify folder
 .netlify
 stack.env
+# Yarn local install cache — not reproducible state, must not be committed
+.yarn/install-state.gz
+.yarn/cache
