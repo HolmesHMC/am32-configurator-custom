@@ -72,3 +72,11 @@ Storage replacement (S3 → am32.ca public API):
 Holmes commits + pushes; the AM32 host maintainer runs
 `git pull && docker compose up -d --build` in our stack directory. No new env
 vars, volumes or secrets required.
+
+## 2026-09-01 10:26 CDT — deployment fix pushed
+
+- Ran `workspace/push-am32-configurator.sh`; all preflight guards passed.
+- Pushed 3 commits: `3b6ba1f`, `e207d1d`, `e0864c0`.
+- Verified `origin/master` matches local HEAD `e0864c0`; remote URL remained clean.
+- Site still requires the AM32 host maintainer to run
+  `git pull && docker compose up -d --build`; pushing alone does not deploy.
