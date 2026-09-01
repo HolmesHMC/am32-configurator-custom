@@ -1,229 +1,64 @@
-import { promiseTimeout } from '@vueuse/core';
-import { useMinio } from '~/composables/useMinio';
+/**
+ * Firmware / bootloader / tool listing.
+ *
+ * am32.ca used to expose these through an S3 (Versity) gateway that this app
+ * talked to directly, using credentials injected from stack.env on the host.
+ * Upstream retired that gateway in am32-firmware/am32-configurator@ffdb40e
+ * (2026-08-27): files now live in a plain directory on the am32.ca host, and
+ * the listing is published over an unauthenticated HTTP API.
+ *
+ * We have no mount on that host, so we read the public API and rewrite its
+ * relative links to absolute ones. The response shape is unchanged, so
+ * pages/downloads.vue needs no changes.
+ */
 
-function delay (ms: number) {
-    return promiseTimeout(ms);
+interface UpstreamFile {
+    name: string;
+    url?: string;
+    downloadUrl?: string;
 }
 
+interface UpstreamFolder {
+    name: string;
+    files?: UpstreamFile[];
+    children?: UpstreamFolder[];
+}
+
+const absolutise = (origin: string, folder: UpstreamFolder): BlobFolder => ({
+    name: folder.name,
+    files: (folder.files ?? []).map(file => ({
+        name: file.name,
+        // upstream returns site-relative paths like /api/file/releases/v2.20/x.hex
+        url: file.url?.startsWith('/') ? `${origin}${file.url}` : (file.url ?? '')
+    })),
+    children: (folder.children ?? []).map(child => absolutise(origin, child))
+});
+
 export default defineEventHandler(async (event) => {
+    const origin = useRuntimeConfig(event).filesOrigin.replace(/\/+$/, '');
     const query = getQuery(event);
 
-    const toolsCache = useStorage('tools');
-    const releasesCache = useStorage('releases');
-    const bootloadersCache = useStorage('bootloaders');
-
-    const filter = query.filter?.toString().split(',') ?? ['releases', 'bootloader', 'tools'];
-    const includePrereleases = query.prereleases !== undefined;
-
-    const minioClient = useMinio();
-
-    const folders: BlobFolder[] = [];
-
-    if (filter.includes('releases')) {
-        const releasesStream = minioClient.listObjectsV2('releases', '', true, '');
-
-        const getReleases = (): Promise<{
-            key: string,
-            value: string | null
-        }[]> => new Promise((resolve) => {
-            releasesStream.on('data', async (obj) => {
-                if (obj.name) {
-                    if (!(await releasesCache.hasItem(`releases:${obj.name}`))) {
-                        const url = await minioClient.presignedUrl('get', 'releases', obj.name, 24 * 60 * 60);
-                        await releasesCache.setItem(
-                            `releases:${obj.name}`,
-                            `${url}`,
-                            {
-                                ttl: (24 * 60 * 60) - 1
-                            }
-                        );
-                    }
-                }
-            });
-
-            releasesStream.on('end', async () => {
-                await delay(200);
-                const keys = await releasesCache.getKeys('releases');
-                const result: {
-                    key: string,
-                    value: string | null
-                }[] = [];
-                for (const key of keys) {
-                    result.push({
-                        key,
-                        value: (await releasesCache.getItem(key))?.toString() ?? ''
-                    });
-                }
-                resolve(result);
-            });
-        });
-
-        const releases = await getReleases();
-
-        const releasesFolder = {
-            name: 'releases',
-            children: [] as BlobFolder[],
-            files: [] as BlobFolderFile[]
-        };
-
-        folders.push(releasesFolder);
-
-        for (const release of releases) {
-            const [, fileOrVersion, ...subParts] = release.key.split(':').filter(Boolean);
-            if (
-                includePrereleases ||
-                !fileOrVersion.endsWith('-rc')
-            ) {
-                if (subParts.length > 0) {
-                    let subfolder = releasesFolder.children.find(sf => sf.name === fileOrVersion);
-                    if (!subfolder) {
-                        subfolder = {
-                            name: fileOrVersion,
-                            files: [],
-                            children: []
-                        };
-                        releasesFolder.children.push(subfolder);
-                    }
-                    subfolder.files.push({
-                        name: subParts[0],
-                        url: release.value ?? ''
-                    });
-                } else {
-                    releasesFolder.files.push({
-                        name: fileOrVersion,
-                        url: release.value ?? ''
-                    });
-                }
-            }
-        }
+    const params = new URLSearchParams();
+    if (query.filter !== undefined && query.filter !== null) {
+        params.set('filter', query.filter.toString());
     }
-
-    if (filter.includes('bootloader')) {
-        const bootloadersStream = minioClient.listObjectsV2('bootloaders', '', true, '');
-
-        const getBootloaders = (): Promise<{
-            key: string,
-            value: string | null
-        }[]> => new Promise((resolve) => {
-            bootloadersStream.on('data', async (obj) => {
-                if (obj.name) {
-                    if (!(await bootloadersCache.hasItem(`bootloaders:${obj.name}`))) {
-                        const url = await minioClient.presignedUrl('get', 'bootloaders', obj.name, 24 * 60 * 60);
-                        await bootloadersCache.setItem(
-                            `bootloaders:${obj.name}`,
-                            `${url}`,
-                            {
-                                ttl: (24 * 60 * 60) - 1
-                            }
-                        );
-                    }
-                }
-            });
-
-            bootloadersStream.on('end', async () => {
-                await delay(200);
-                const keys = await bootloadersCache.getKeys('bootloaders');
-                const result: {
-                    key: string,
-                    value: string | null
-                }[] = [];
-                for (const key of keys) {
-                    result.push({
-                        key,
-                        value: (await bootloadersCache.getItem(key))?.toString() ?? ''
-                    });
-                }
-                resolve(result);
-            });
-        });
-
-        const bootloaders = await getBootloaders();
-
-        const bootloadersFolder = {
-            name: 'bootloader',
-            children: [] as BlobFolder[],
-            files: [] as BlobFolderFile[]
-        };
-
-        folders.push(bootloadersFolder);
-
-        for (const bootloader of bootloaders) {
-            const [, fileOrVersion, ...subParts] = bootloader.key.split(':').filter(Boolean);
-
-            if (subParts.length > 0) {
-                let subfolder = bootloadersFolder.children.find(sf => sf.name === fileOrVersion);
-                if (!subfolder) {
-                    subfolder = {
-                        name: fileOrVersion,
-                        files: [],
-                        children: []
-                    };
-                    bootloadersFolder.children.push(subfolder);
-                }
-                subfolder.files.push({
-                    name: subParts[0],
-                    url: bootloader.value ?? ''
-                });
-            } else {
-                bootloadersFolder.files.push({
-                    name: fileOrVersion,
-                    url: bootloader.value ?? ''
-                });
-            }
-        }
+    if (query.prereleases !== undefined) {
+        params.set('prereleases', '');
     }
+    const search = params.toString();
 
-    if (filter.includes('bootloader')) {
-        const toolsStream = minioClient.listObjectsV2('am32-tools', '', true, '');
+    let upstream: { data?: UpstreamFolder[] };
 
-        const getTools = (): Promise<{
-            key: string,
-            value: string | null
-        }[]> => new Promise((resolve) => {
-            toolsStream.on('data', async (obj) => {
-                if (obj.name) {
-                    if (!(await toolsCache.hasItem(`tools:${obj.name}`))) {
-                        const url = await minioClient.presignedUrl('get', 'am32-tools', obj.name, 24 * 60 * 60);
-                        await toolsCache.setItem(
-                            `tools:${obj.name}`,
-                            `${url}`,
-                            {
-                                ttl: (24 * 60 * 60) - 1
-                            }
-                        );
-                    }
-                }
-            });
-
-            toolsStream.on('end', async () => {
-                await delay(200);
-                const keys = await toolsCache.getKeys('tools');
-                const result: {
-                    key: string,
-                    value: string | null
-                }[] = [];
-                for (const key of keys) {
-                    result.push({
-                        key,
-                        value: (await toolsCache.getItem(key))?.toString() ?? ''
-                    });
-                }
-                resolve(result);
-            });
-        });
-
-        const tools = await getTools();
-        folders.push({
-            name: 'tools',
-            children: [],
-            files: tools.filter(t => t.value).map(t => ({
-                name: t.key.split(':').pop() ?? t.key,
-                url: t.value ?? ''
-            }))
+    try {
+        upstream = await $fetch<{ data?: UpstreamFolder[] }>(`${origin}/api/files${search ? `?${search}` : ''}`);
+    } catch (e) {
+        throw createError({
+            statusCode: 502,
+            statusMessage: `could not reach the AM32 file index at ${origin}`
         });
     }
 
     return {
-        data: folders
+        data: (upstream.data ?? []).map(folder => absolutise(origin, folder))
     };
 });
