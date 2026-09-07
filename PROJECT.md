@@ -53,7 +53,7 @@ deployed as a Docker container on the AM32 host behind Traefik, served at
    modified `docker/`, `docker-compose.yml` or `.dockerignore` before 2026-09-01,
    which is why they rotted. Ours to defend: `components/SerialDevice.vue`,
    `components/TopNavigation.vue`, `components/EscView.vue`,
-   `pages/configurator.vue`, `pages/traillink.vue`, `pages/download.vue`,
+   `pages/configurator.vue`, `pages/download.vue`,
    `utils/esc-presets.ts`, `src/communication/direct.ts`, `public/**`, and the
    `routeRules` block in `nuxt.config.ts`.
 5. **Never blind-merge upstream.** It is ~6 months ahead with a Prisma/MariaDB
@@ -71,6 +71,6 @@ deployed as a Docker container on the AM32 host behind Traefik, served at
 1. Get the fix committed, pushed, and rebuilt on the host — see RESTART.md.
 2. Add a `restart: unless-stopped` equivalent check / uptime ping so a silent
    disappearance is noticed in hours, not months.
-3. Delete `package-lock.json` and `netlify.toml` (both dead weight).
+3. Delete `package-lock.json` (dead weight).
 4. Port the Inrunner / Outrunner / Micro presets to the TrailLink phone app so
    web and phone do not drift. `utils/esc-presets.ts` is the reference.

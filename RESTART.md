@@ -25,8 +25,8 @@ A failed build on the host is invisible to us. Always verify locally first:
 `corepack yarn install --immutable && corepack yarn build`.
 
 ## Verified live after recovery
-`/` 302 → `/configurator` · `/configurator`, `/downloads`, `/traillink`,
-`/download` all 200 · `/api/files?prereleases` returns 5 sections with absolute
+`/` 302 → `/configurator` · `/configurator`, `/downloads`, `/download`
+all 200 · `/api/files?prereleases` returns 5 sections with absolute
 am32.ca URLs · `/eeprom` 200 (15,847 bytes) · TrailLink APK 26,329,728 bytes
 with the correct APK content-type.
 
@@ -44,6 +44,5 @@ would collide with the main site); a host-side `.env` still overrides both.
 - `package-lock.json` (npm) is still committed alongside `yarn.lock`. Inert for
   the Docker build, but a third lockfile in a repo that already had two
   disagreeing ones. Recommend deleting.
-- `netlify.toml` is dead — the host runs the Nuxt server, not Netlify.
 - Fork is ~6 months behind `am32-firmware/am32-configurator`. Do not blind-merge:
   upstream added Prisma + MariaDB and rewrote the 4-way protocol layer.
