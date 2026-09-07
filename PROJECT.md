@@ -35,7 +35,7 @@ deployed as a Docker container on the AM32 host behind Traefik, served at
 | Base image | `node:24-bookworm` | pinned; `node:lts` moved to 24.20.0 on 2026-08-27 |
 | Package manager | `yarn@4.12.0` via corepack | `packageManager` field is the pin |
 | Verified build | Node 20.20.2 and 24.20.0, 2026-09-01 | `yarn install --immutable` + `yarn build` |
-| Fork point from upstream | `ae34765` = upstream `6f8315d` (2026-03-02) | last `am32-firmware:master` merge |
+| Fork point from upstream | `9acfce6` = upstream `6f8315d` (2026-03-02) | last `am32-firmware:master` merge |
 
 ## Rules
 
