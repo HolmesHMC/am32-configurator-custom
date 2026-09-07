@@ -22,8 +22,7 @@ deployed as a Docker container on the AM32 host behind Traefik, served at
   `server/routes/eeprom.ts` and `server/api/eeprom/[name].ts` proxy the matching
   am32.ca endpoints. Origin is `runtimeConfig.filesOrigin` (env `FILES_ORIGIN`,
   default `https://am32.ca`).
-- **Our static assets** (TrailLink APK, TrailLink firmware bins, EEPROM default
-  binaries) live in `public/` and are baked into `.output/public` at build time.
+- **Our static assets** (TrailLink APK, EEPROM default binaries) live in `public/` and are baked into `.output/public` at build time.
   They do not depend on am32.ca.
 
 ## Critical Constants
@@ -36,7 +35,7 @@ deployed as a Docker container on the AM32 host behind Traefik, served at
 | Base image | `node:24-bookworm` | pinned; `node:lts` moved to 24.20.0 on 2026-08-27 |
 | Package manager | `yarn@4.12.0` via corepack | `packageManager` field is the pin |
 | Verified build | Node 20.20.2 and 24.20.0, 2026-09-01 | `yarn install --immutable` + `yarn build` |
-| Fork point from upstream | `ae34765` (2026-03-02) | last `am32-firmware:master` merge |
+| Fork point from upstream | `ae34765` = upstream `6f8315d` (2026-03-02) | last `am32-firmware:master` merge |
 
 ## Rules
 

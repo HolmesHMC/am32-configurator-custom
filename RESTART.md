@@ -28,7 +28,7 @@ A failed build on the host is invisible to us. Always verify locally first:
 `/` 302 → `/configurator` · `/configurator`, `/downloads`, `/traillink`,
 `/download` all 200 · `/api/files?prereleases` returns 5 sections with absolute
 am32.ca URLs · `/eeprom` 200 (15,847 bytes) · TrailLink APK 26,329,728 bytes
-with the correct APK content-type · traillink firmware bins served.
+with the correct APK content-type.
 
 ## Next step
 Nothing urgent — the site is healthy. Open items are in PROJECT.md; the next

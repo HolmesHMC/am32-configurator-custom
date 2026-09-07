@@ -63,7 +63,7 @@ Storage replacement (S3 → am32.ca public API):
 - `/api/files?prereleases` → 5 sections with absolute am32.ca URLs;
   `?filter=tools` forwarded correctly; `/eeprom` → 200 JSON (15,847 bytes).
 - Customizations intact: `/download` 200, `/downloads/TrailLink.apk` 200
-  (26,329,728 bytes), `/firmware/traillink/scale_buddy.bin` 200 (1,236,400 bytes).
+  (26,329,728 bytes).
 - **Not** run: an actual `docker build` (local docker daemon is stopped, and the
   x86 colima profile would emulate). The Dockerfile's install/build steps are
   what was verified natively.
@@ -100,7 +100,7 @@ What the recovery does confirm:
 - The S3 replacement works in production: `/api/files?prereleases` returns all
   five sections with absolute am32.ca URLs, `/eeprom` returns the schema.
 - Our customizations survive: `/` redirects to `/configurator`, the TrailLink
-  APK serves at 26,329,728 bytes, firmware bins serve.
+  APK serves at 26,329,728 bytes.
 
 It also sharpens the root cause. The poller must be gated on new commits — an
 unconditional `docker compose up -d --build` would have restarted the stopped
