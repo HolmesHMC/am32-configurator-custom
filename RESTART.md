@@ -5,8 +5,8 @@ Site is **UP** again as of 2026-09-01 15:32Z. It had been dead for weeks:
 Traefik had no router for the host, so everything 404'd at the proxy while
 `am32.ca` on the same IP (138.199.169.142) stayed fine.
 
-Fix is live on `origin/master` — `3b6ba1f` (retired am32.ca S3 backend replaced
-with its public HTTP API) and `e207d1d` (build pinned, `restart: unless-stopped`
+Fix is live on `origin/master` — `57f7aa0` (retired am32.ca S3 backend replaced
+with its public HTTP API) and `f2d3f46` (build pinned, `restart: unless-stopped`
 added). The AM32 host rebuilt on its own within ~25 min of the push. No
 maintainer was involved, and none is needed.
 

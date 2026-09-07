@@ -1,6 +1,6 @@
 # PROGRESS — AM32 Configurator (Holmes Hobbies fork)
 
-## 2026-09-01 — outage triage + deployment de-rot (uncommitted; HEAD `26bb720`)
+## 2026-09-01 — outage triage + deployment de-rot (uncommitted; HEAD `a9cd0cc`)
 
 ### Symptom
 `https://holmes.am32.ca/` returned `404 page not found` as `text/plain` with
@@ -9,7 +9,7 @@ matched the host, i.e. our container was not running. `am32.ca` (same IP,
 `138.199.169.142`) served fine, so DNS, host and proxy were all healthy.
 Our repo had not changed since 2026-06-01.
 
-### What upstream changed (fork point `6f8315d`, 2026-03-02)
+### What upstream changed (fork point `ae34765`, 2026-03-02)
 - `e3b8480` (2026-08-23) removed `yarn set version berry` from the Dockerfile.
   Commit message: it "defeated the packageManager pin and needed the network …
   **already applied as a local modification on the deployment host**". Our
@@ -76,14 +76,14 @@ vars, volumes or secrets required.
 ## 2026-09-01 10:26 CDT — deployment fix pushed
 
 - Ran `workspace/push-am32-configurator.sh`; all preflight guards passed.
-- Pushed 3 commits: `3b6ba1f`, `e207d1d`, `e0864c0`.
-- Verified `origin/master` matches local HEAD `e0864c0`; remote URL remained clean.
+- Pushed 3 commits: `57f7aa0`, `f2d3f46`, `6f80372`.
+- Verified `origin/master` matches local HEAD `6f80372`; remote URL remained clean.
 - Site still requires the AM32 host maintainer to run
   `git pull && docker compose up -d --build`; pushing alone does not deploy.
 
 ## 2026-09-01 15:32Z — site recovered, no maintainer needed
 
-Pushed `9e70366`..`e0864c0` at 15:05Z. By 15:32Z `holmes.am32.ca` was serving
+Pushed `435ff40`..`6f80372` at 15:05Z. By 15:32Z `holmes.am32.ca` was serving
 again. Nobody touched the host.
 
 **This corrects a wrong conclusion from the triage above.** I checked both repos
